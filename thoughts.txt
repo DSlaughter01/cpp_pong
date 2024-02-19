@@ -1,0 +1,46 @@
+THE GAMEPLAY: WHAT HAPPENS?
+The main function starts, and the screen appears, inits, whatever
+
+Render text "Press space to start" in top half of screen 
+
+Two scores are displayed, one in the middle of each half, at the top
+- Again, consider padding
+- Can I resize the font depending on the screen?
+- Also resize the surface to fit
+
+The user presses space, and the game starts
+- Do I want a countdown?
+- Consider how to get keyboard input
+- How do I limit the FPS to 60?
+
+The ball moves to the right, at an initial velocity. The angle is random within a certain range
+- How do I generate a random number which changes each time?
+
+The player presses a button, and the paddle moves up or down
+- Consider how fast this should happen
+
+The ball either:
+    Hits either the top or bottom
+        - vertical velocity *= -1
+        - horizontal velocity stays the same
+
+    Gets rebounded (collision) by the long left side of the paddle:
+        - The right-most point of the ball collides with the left side of the rectangle
+        - The ball rebounds the other way, and increases its speed slightly (horizontal velocity *= -1.2)
+
+    Gets rebounded by the top or bottom parts of the paddle:
+        - Same effect as either hitting the top or bottom of the screen (but collision points are different)
+
+    Hits the back wall:
+        - Score for the attacking player changes
+        - Game restarts (not sure if this time it should wait for a space bar)
+        - The ball goes in the opposite direction from the last time
+
+PROBLEMS/TODOS
+Change the size of font on window resize
+Slight lag in pressing keys, moves then waits
+Start text isn't rendering
+Need to render scores
+Need to make sure everything resizes properly
+Ball should go a different direction each time
+Need to reset the screen every time
