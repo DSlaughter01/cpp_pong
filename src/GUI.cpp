@@ -1,5 +1,6 @@
 #include "GUI.hpp"
 
+// Static variables
 int GameVariables::windowHeight = 600;
 int GameVariables::windowWidth = 800;
 
@@ -12,6 +13,7 @@ int GameVariables::courtBottomY;
 int GameVariables::courtTopY;
 
 GUI::GUI() {
+
     // Initialise SDL
     SDL_Init(SDL_INIT_EVERYTHING);
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -38,17 +40,20 @@ GUI::GUI() {
     }
     SDL_SetRenderDrawColor(renderer, 20, 20, 20, SDL_ALPHA_OPAQUE);
 
-    // Court edges
+    // Define the court limits
     courtLeftX = courtPadding;
     courtRightX = windowWidth - courtPadding;
     courtTopY = courtPadding;
     courtBottomY = windowHeight - courtPadding;
 }
 
+
 GUI::~GUI() {
+
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
 }
+
 
 void GUI::DrawCourt(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle) {
     
@@ -69,7 +74,9 @@ void GUI::DrawCourt(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle) {
     SDL_SetRenderDrawColor(renderer, 20, 20, 20, SDL_ALPHA_OPAQUE);
 }
 
+
 void GUI::RenderScreen(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle) {
+
     SDL_RenderClear(renderer);
     DrawCourt(ball, leftPaddle, rightPaddle);
     SDL_RenderPresent(renderer);

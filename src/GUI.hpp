@@ -11,7 +11,10 @@ class GUI : public GameVariables {
         GUI();
         ~GUI();
 
+        // Draws court lines and game objects.
         void DrawCourt(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle);
+
+        // Renders the screen to renderer
         void RenderScreen(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle);
     
     public:

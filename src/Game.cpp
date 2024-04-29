@@ -14,28 +14,29 @@ Game::~Game() {}
 
 void Game::HandleKeysInGame(const Uint8 * currentKeyboardState, SDL_Event &event, Paddle &leftPaddle, Paddle &rightPaddle) {
 
+    // Right paddle movement
     if (currentKeyboardState[SDL_SCANCODE_UP] && 
         rightPaddle.rect.y > courtPadding)
-        rightPaddle.SetDirection('u');
+        rightPaddle.SetVelocity('u');
 
     else if (currentKeyboardState[SDL_SCANCODE_DOWN] && 
              rightPaddle.rect.y + rightPaddle.rect.h < windowHeight - courtPadding) 
-        rightPaddle.SetDirection('d');
+        rightPaddle.SetVelocity('d');
 
     else
-        rightPaddle.SetDirection('n');
+        rightPaddle.SetVelocity('n');
 
-
+    // Left paddle movement
     if (currentKeyboardState[SDL_SCANCODE_W] && 
         leftPaddle.rect.y > courtPadding)
-        leftPaddle.SetDirection('u'); 
+        leftPaddle.SetVelocity('u'); 
 
     else if (currentKeyboardState[SDL_SCANCODE_S] && 
              leftPaddle.rect.y + leftPaddle.rect.h < windowHeight - courtPadding)  
-        leftPaddle.SetDirection('d');
+        leftPaddle.SetVelocity('d');
 
     else
-        leftPaddle.SetDirection('n');
+        leftPaddle.SetVelocity('n');
 }
 
 
@@ -63,17 +64,19 @@ void Game::MoveGameObjects(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle) 
 
 void Game::HandleScore(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char whoScored) {
 
+    // Check that the correct arguments are passed to the function
     if (whoScored != 'l' && whoScored != 'r') {
         std::cerr << "Must pass either 'l' or 'r' as whoScored argument" << std::endl;
         return;
     }
     
+    // Reset game objects and set the ball to stationary
     ball.Reset();
     leftPaddle.Reset();
     rightPaddle.Reset();
-
     isInPlay = false;
 
+    // Update score
     if (whoScored == 'l') 
         leftScore++;
     else if (whoScored == 'r')
@@ -106,7 +109,7 @@ void Game::GameLoop(GUI gui) {
                 break;
             }
 
-            // Spacebar sets ball off
+            // Spacebar starts ball movement
             if (event.type == SDL_KEYDOWN) {
                 if (event.key.keysym.sym == SDLK_SPACE && !isInPlay) {
                     isInPlay = true;
@@ -120,12 +123,13 @@ void Game::GameLoop(GUI gui) {
         MoveGameObjects(ball, leftPaddle, rightPaddle);
         HandleCollisions(ball, leftPaddle, rightPaddle);
 
-        // Score if the ball goes off the court
+        // One player scores if the ball goes off the court
         if (ball.rect.x + ball.rect.w < 0)
             HandleScore(ball, leftPaddle, rightPaddle, 'r');
         else if (ball.rect.x > windowWidth)
             HandleScore(ball, leftPaddle, rightPaddle, 'l');
 
+        // Render the screen
         gui.RenderScreen(ball, leftPaddle, rightPaddle);
 
         // Control frame rate

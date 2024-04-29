@@ -8,35 +8,52 @@
 class Paddle : public GameVariables {
 
     public:
-        Paddle(char side);
-
-        void Reset();
-        void SetDirection(char direction);
-        void Move();
-
-    public:
         SDL_Rect rect;
     
     private:
         int dy;
         int x, y, w, h;
         const int paddleVel = 3;
+
+    public:
+        // side should be 'l' (left) or 'r' (right).
+        Paddle(char side);
+
+        // Resets the paddle to its original rect position and velocity.
+        void Reset();
+
+        // Sets the paddle's dy according to direction 'u' (up), 'd' (down), or 'n' (none).
+        void SetVelocity(char direction);
+
+        // Updates the paddle's rect according to its dy (velocity).
+        void Move();
 };
 
 class Ball : public GameVariables {
+
     public:
         SDL_Rect rect;
         float dx, dy;
 
+    private:
+        int x, y, w, h;
+
     public:
         Ball();
 
+        // Resets the ball to its original rect position and velocity.
         void Reset();
-        void StartMovement();
-        void Move();
-        void ReverseDY();
-        void CheckForPaddleCollision(Paddle &paddle);
 
-    private:
-        int x, y, w, h;
+        // Sets dy to a random float between -2 and 2, and dx to GameVariables::initialBallDX.
+        // Called when Game::isInPlay is changed from false to true.
+        void StartMovement();
+
+        // Updates the ball's rect according to its dx and dy.
+        void Move();
+
+        // Reverses dy. Called when the ball hits the upper or lower court boundaries.
+        void ReverseDY();
+
+        // Checks for collision with one of the paddles. Called under certain conditions on rect and dx.
+        void CheckForPaddleCollision(Paddle &paddle);
 };
