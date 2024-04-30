@@ -28,7 +28,7 @@ class Game : public GameVariables {
         void MoveGameObjects(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle);
 
         // Resets object position and velocity, and updates the score. whoScored should be 'l' (left) or 'r' (right)
-        void HandleScore(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char whoScored);
+        void HandleScore(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char whoScored, GUI &gui);
 
         void GameLoop(GUI gui);
 };

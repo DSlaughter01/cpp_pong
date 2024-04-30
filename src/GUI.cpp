@@ -6,18 +6,28 @@ int GameVariables::windowWidth = 800;
 
 int GameVariables::courtPadding = 30;
 int GameVariables::paddlePadding = 30;
+int GameVariables::textPadding = 15;
 
 int GameVariables::courtLeftX;
 int GameVariables::courtRightX;
 int GameVariables::courtBottomY;
 int GameVariables::courtTopY;
 
-GUI::GUI() {
+GUI::GUI() :
+    leftScoreSurf(nullptr), rightScoreSurf(nullptr), leftScoreTex(nullptr), rightScoreTex(nullptr)
+{
 
-    // Initialise SDL
+    // Initialise SDL and TTF
     SDL_Init(SDL_INIT_EVERYTHING);
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "Problem initialising GUI: " << SDL_GetError() << std::endl;
+        return;
+    }
+
+    TTF_Init();
+    if (TTF_Init() < 0) {
+        std::cerr << "Problem initialising font library" << TTF_GetError() << std::endl;
+        return;
     }
 
     // Create a resizeable window
@@ -38,6 +48,7 @@ GUI::GUI() {
         std::cerr << "Renderer could not be initialised: " << SDL_GetError() << std::endl;
         return;
     }
+
     SDL_SetRenderDrawColor(renderer, 20, 20, 20, SDL_ALPHA_OPAQUE);
 
     // Define the court limits
@@ -45,13 +56,62 @@ GUI::GUI() {
     courtRightX = windowWidth - courtPadding;
     courtTopY = courtPadding;
     courtBottomY = windowHeight - courtPadding;
+
+    // Score display
+    scoreFont = TTF_OpenFont("src/Roboto-Regular.ttf", 32);
+    UpdateScoreTex(0, 0);
 }
 
 
 GUI::~GUI() {
 
+    TTF_CloseFont(scoreFont);
+
+    TTF_Quit();
+    SDL_Quit();
+
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
+
+    SDL_FreeSurface(leftScoreSurf);
+    SDL_FreeSurface(rightScoreSurf);
+
+    SDL_DestroyTexture(leftScoreTex);
+    SDL_DestroyTexture(rightScoreTex);
+}
+
+
+void GUI::UpdateScoreTex(int leftScore, int rightScore) {
+
+    if (leftScoreSurf)
+        SDL_FreeSurface(leftScoreSurf);
+    if (rightScoreSurf)
+        SDL_FreeSurface(rightScoreSurf);
+    if (leftScoreTex)
+        SDL_DestroyTexture(leftScoreTex);
+    if (rightScoreTex)
+        SDL_DestroyTexture(rightScoreTex);
+
+    // Take as input the score
+    leftScoreStr = std::to_string(leftScore);
+    rightScoreStr = std::to_string(rightScore);
+
+    // Create surface and texture
+    leftScoreSurf = TTF_RenderText_Solid(scoreFont, leftScoreStr.c_str(), textColour);
+    rightScoreSurf = TTF_RenderText_Solid(scoreFont, rightScoreStr.c_str(), textColour);
+
+    leftScoreTex = SDL_CreateTextureFromSurface(renderer, leftScoreSurf);
+    rightScoreTex = SDL_CreateTextureFromSurface(renderer, rightScoreSurf);
+
+    // Define destination rectangles
+    leftScoreDest = {windowWidth / 4 - leftScoreSurf->w / 2, 
+                     courtPadding + textPadding, 
+                     leftScoreSurf->w, 
+                     leftScoreSurf->h};
+    rightScoreDest = {3 * windowWidth / 4 - rightScoreSurf->w / 2, 
+                      courtPadding + textPadding, 
+                      rightScoreSurf->w, 
+                      rightScoreSurf->h};
 }
 
 
@@ -79,5 +139,7 @@ void GUI::RenderScreen(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle) {
 
     SDL_RenderClear(renderer);
     DrawCourt(ball, leftPaddle, rightPaddle);
+    SDL_RenderCopy(renderer, leftScoreTex, NULL, &leftScoreDest);
+    SDL_RenderCopy(renderer, rightScoreTex, NULL, &rightScoreDest);
     SDL_RenderPresent(renderer);
 }

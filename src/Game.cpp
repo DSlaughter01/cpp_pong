@@ -62,7 +62,7 @@ void Game::MoveGameObjects(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle) 
     ball.Move();
 }
 
-void Game::HandleScore(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char whoScored) {
+void Game::HandleScore(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char whoScored, GUI &gui) {
 
     // Check that the correct arguments are passed to the function
     if (whoScored != 'l' && whoScored != 'r') {
@@ -81,6 +81,7 @@ void Game::HandleScore(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char
         leftScore++;
     else if (whoScored == 'r')
         rightScore++;
+    gui.UpdateScoreTex(leftScore, rightScore);
 }
 
 void Game::GameLoop(GUI gui) {
@@ -125,9 +126,9 @@ void Game::GameLoop(GUI gui) {
 
         // One player scores if the ball goes off the court
         if (ball.rect.x + ball.rect.w < 0)
-            HandleScore(ball, leftPaddle, rightPaddle, 'r');
+            HandleScore(ball, leftPaddle, rightPaddle, 'r', gui);
         else if (ball.rect.x > windowWidth)
-            HandleScore(ball, leftPaddle, rightPaddle, 'l');
+            HandleScore(ball, leftPaddle, rightPaddle, 'l', gui);
 
         // Render the screen
         gui.RenderScreen(ball, leftPaddle, rightPaddle);
