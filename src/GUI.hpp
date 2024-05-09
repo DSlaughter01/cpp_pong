@@ -14,28 +14,38 @@ class GUI : public GameVariables {
         GUI();
         ~GUI();
 
+        void GenerateSpaceText();
+
+        // Updates score textures to accommodate different scores 
         void UpdateScoreTex(int leftScore, int rightScore);
 
         // Draws court lines and game objects.
         void DrawCourt(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle);
 
-        // Renders the screen to renderer
+        // Renders the screen to renderer.
         void RenderScreen(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle);
+
+        // Sets the variables for window height and width, and returns {widthDifference, heightDifference}
+        std::pair<int, int> ChangeWindowSize();
+
     
     private:
         SDL_Window* window;
         SDL_Renderer* renderer;
 
-        std::string leftScoreStr, rightScoreStr;
+        std::string leftScoreStr, rightScoreStr, pressSpaceStr;
 
         SDL_Surface* leftScoreSurf;
         SDL_Surface* rightScoreSurf;
+        SDL_Surface* pressSpaceSurf;
 
         SDL_Texture* leftScoreTex;
         SDL_Texture* rightScoreTex;
+        SDL_Texture* pressSpaceTex;
 
         SDL_Rect leftScoreDest;
         SDL_Rect rightScoreDest;
+        SDL_Rect pressSpaceDest;
 
-        TTF_Font* scoreFont;
+        TTF_Font* gameFont;
 };

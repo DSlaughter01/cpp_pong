@@ -9,10 +9,10 @@ class Game : public GameVariables {
 
     public:
         int leftScore, rightScore;
-        bool isInPlay;
 
     private:
         bool isRunning;
+        bool resize;
 
     public:
         Game();
@@ -29,6 +29,9 @@ class Game : public GameVariables {
 
         // Resets object position and velocity, and updates the score. whoScored should be 'l' (left) or 'r' (right)
         void HandleScore(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char whoScored, GUI &gui);
+
+        // 
+        void ReactToWindowResize(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, GUI &gui);
 
         void GameLoop(GUI gui);
 };

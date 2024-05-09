@@ -1,7 +1,9 @@
 #include "Game.hpp"
 
+bool GameVariables::isInPlay = false;
+
 Game::Game() :
-    isRunning(true), leftScore(0), rightScore(0), isInPlay(false)
+    isRunning(true), leftScore(0), rightScore(0), resize(false)
 {
     // Initialise SDL, handling errors as needed
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -43,10 +45,12 @@ void Game::HandleKeysInGame(const Uint8 * currentKeyboardState, SDL_Event &event
 void Game::HandleCollisions(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle) {
 
     // Check for collision with paddles
-    if (ball.rect.x + ball.rect.w >= rightPaddle.rect.x && ball.dx > 0)
-        ball.CheckForPaddleCollision(rightPaddle);
-    else if (ball.rect.x <= leftPaddle.rect.x + leftPaddle.rect.w && ball.dx < 0)
-        ball.CheckForPaddleCollision(leftPaddle);
+    if ((ball.rect.x + ball.rect.w >= rightPaddle.rect.x && ball.dx > 0 && SDL_HasIntersection(&ball.rect, &rightPaddle.rect)) 
+    ||
+    (ball.rect.x <= leftPaddle.rect.x + leftPaddle.rect.w && ball.dx < 0 && SDL_HasIntersection(&ball.rect, &leftPaddle.rect))) {
+        ball.BounceOffPaddle();
+    }
+
 
     // Check for collision with court edges
     if ((ball.rect.y <= GameVariables::courtTopY && ball.dy < 0) || 
@@ -84,6 +88,24 @@ void Game::HandleScore(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char
     gui.UpdateScoreTex(leftScore, rightScore);
 }
 
+
+void Game::ReactToWindowResize(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, GUI &gui) {
+
+    // Get the new window dimensions and set them in GameVariables
+    // Calculate the difference in the old and new sizes
+    std::pair<int, int> dimensionChanges = gui.ChangeWindowSize();
+
+    // Update GameVariable file to reflect changes
+    courtRightX += dimensionChanges.first;
+    courtBottomY += dimensionChanges.second;
+
+    // Reposition game objects accordingly
+    ball.ReactToWindowResize(dimensionChanges.first, dimensionChanges.second);
+    leftPaddle.ReactToWindowResize(dimensionChanges.first, dimensionChanges.second);
+    rightPaddle.ReactToWindowResize(dimensionChanges.first, dimensionChanges.second);
+}
+
+
 void Game::GameLoop(GUI gui) {
 
     Uint32 frameStart, frameEnd;
@@ -92,7 +114,7 @@ void Game::GameLoop(GUI gui) {
     // Gets all of the keys pressed simultaneously
     const Uint8 *currentKeyboardState = SDL_GetKeyboardState(NULL);
 
-    // Create game objects
+    // Create game objects on the stack in the GameLoop scope
     Ball ball;
     Paddle leftPaddle = Paddle('l');
     Paddle rightPaddle = Paddle('r');
@@ -117,6 +139,15 @@ void Game::GameLoop(GUI gui) {
                     ball.StartMovement();
                 }
             }
+
+            if (event.window.event && SDL_WINDOWEVENT_SIZE_CHANGED){
+                resize = true;
+            }
+        }
+
+        if (resize) {
+            ReactToWindowResize(ball, leftPaddle, rightPaddle, gui);
+            resize = false;
         }
 
         // Handle and display movement

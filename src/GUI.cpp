@@ -58,14 +58,16 @@ GUI::GUI() :
     courtBottomY = windowHeight - courtPadding;
 
     // Score display
-    scoreFont = TTF_OpenFont("src/Roboto-Regular.ttf", 32);
+    gameFont = TTF_OpenFont("src/Roboto-Regular.ttf", 32);
+    pressSpaceStr = "Press space to start";
+    GenerateSpaceText();
     UpdateScoreTex(0, 0);
 }
 
 
 GUI::~GUI() {
 
-    TTF_CloseFont(scoreFont);
+    TTF_CloseFont(gameFont);
 
     TTF_Quit();
     SDL_Quit();
@@ -75,14 +77,27 @@ GUI::~GUI() {
 
     SDL_FreeSurface(leftScoreSurf);
     SDL_FreeSurface(rightScoreSurf);
+    SDL_FreeSurface(pressSpaceSurf);
 
     SDL_DestroyTexture(leftScoreTex);
     SDL_DestroyTexture(rightScoreTex);
+    SDL_DestroyTexture(pressSpaceTex);
+}
+
+
+void GUI::GenerateSpaceText() {
+    pressSpaceSurf = TTF_RenderText_Solid(gameFont, pressSpaceStr.c_str(), textColour);
+    pressSpaceTex = SDL_CreateTextureFromSurface(renderer, pressSpaceSurf);
+    pressSpaceDest = {(windowWidth - pressSpaceSurf->w) / 2,
+                       3 * windowHeight / 4 - pressSpaceSurf->h / 2,
+                       pressSpaceSurf->w,
+                       pressSpaceSurf->h};
 }
 
 
 void GUI::UpdateScoreTex(int leftScore, int rightScore) {
 
+    // Free memory
     if (leftScoreSurf)
         SDL_FreeSurface(leftScoreSurf);
     if (rightScoreSurf)
@@ -97,8 +112,8 @@ void GUI::UpdateScoreTex(int leftScore, int rightScore) {
     rightScoreStr = std::to_string(rightScore);
 
     // Create surface and texture
-    leftScoreSurf = TTF_RenderText_Solid(scoreFont, leftScoreStr.c_str(), textColour);
-    rightScoreSurf = TTF_RenderText_Solid(scoreFont, rightScoreStr.c_str(), textColour);
+    leftScoreSurf = TTF_RenderText_Solid(gameFont, leftScoreStr.c_str(), textColour);
+    rightScoreSurf = TTF_RenderText_Solid(gameFont, rightScoreStr.c_str(), textColour);
 
     leftScoreTex = SDL_CreateTextureFromSurface(renderer, leftScoreSurf);
     rightScoreTex = SDL_CreateTextureFromSurface(renderer, rightScoreSurf);
@@ -139,7 +154,29 @@ void GUI::RenderScreen(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle) {
 
     SDL_RenderClear(renderer);
     DrawCourt(ball, leftPaddle, rightPaddle);
+    if (!isInPlay)
+        SDL_RenderCopy(renderer, pressSpaceTex, NULL, &pressSpaceDest);
     SDL_RenderCopy(renderer, leftScoreTex, NULL, &leftScoreDest);
     SDL_RenderCopy(renderer, rightScoreTex, NULL, &rightScoreDest);
     SDL_RenderPresent(renderer);
+}
+
+std::pair<int, int> GUI::ChangeWindowSize() {
+
+    int currWidth = windowWidth;
+    int currHeight = windowHeight;
+
+    // Change the window width and height variables
+    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
+    // Change score and space bar placement
+    leftScoreDest.x = windowWidth / 4 - leftScoreSurf->w / 2;
+    rightScoreDest.x = 3 * windowWidth / 4 - rightScoreSurf->w / 2;
+    pressSpaceDest.x = (windowWidth - pressSpaceSurf->w) / 2;
+    pressSpaceDest.y = 3 * windowHeight / 4 - pressSpaceSurf->h / 2;
+
+    // Difference between the old and new dimensions
+    std::pair<int, int> result = {windowWidth - currWidth, windowHeight - currHeight};
+    
+    return result;
 }

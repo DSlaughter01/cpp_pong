@@ -11,6 +11,8 @@ class Paddle : public GameVariables {
         SDL_Rect rect;
     
     private:
+        char side;
+        int initialX, initialY;
         int dy;
         int x, y, w, h;
         const int paddleVel = 3;
@@ -27,6 +29,8 @@ class Paddle : public GameVariables {
 
         // Updates the paddle's rect according to its dy (velocity).
         void Move();
+
+        void ReactToWindowResize(int windowWidthChange, int windowHeightChange);
 };
 
 class Ball : public GameVariables {
@@ -54,6 +58,8 @@ class Ball : public GameVariables {
         // Reverses dy. Called when the ball hits the upper or lower court boundaries.
         void ReverseDY();
 
-        // Checks for collision with one of the paddles. Called under certain conditions on rect and dx.
-        void CheckForPaddleCollision(Paddle &paddle);
+        // Reverses dx and accelerates. Called under certain conditions on rect and dx.
+        void BounceOffPaddle();
+
+        void ReactToWindowResize(int windowWidthChange, int windowHeightChange);
 };
