@@ -30,6 +30,7 @@ class Paddle : public GameVariables {
         // Updates the paddle's rect according to its dy (velocity).
         void Move();
 
+        // Adjusts paddle position relative to court size in reaction to the user resizing the window
         void ReactToWindowResize(int windowWidthChange, int windowHeightChange);
 };
 
@@ -48,7 +49,7 @@ class Ball : public GameVariables {
         // Resets the ball to its original rect position and velocity.
         void Reset();
 
-        // Sets dy to a random float between -2 and 2, and dx to GameVariables::initialBallDX.
+        // Sets dy to a random float between -3 and -1, or between 1 and 3, and dx to GameVariables::initialBallDX.
         // Called when Game::isInPlay is changed from false to true.
         void StartMovement();
 
@@ -61,5 +62,6 @@ class Ball : public GameVariables {
         // Reverses dx and accelerates. Called under certain conditions on rect and dx.
         void BounceOffPaddle();
 
+        // Adjusts ball position relative to court size in reaction to the user resizing the window
         void ReactToWindowResize(int windowWidthChange, int windowHeightChange);
 };

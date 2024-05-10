@@ -64,8 +64,20 @@ Ball::Ball() :
 void Ball::StartMovement() {
     dx = initialBallDX;
 
-    // TODO: Randomly generate dy between -2 and 2
-    dy = 2;
+    // Randomly generate dy between 1 and 3
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    srand(ts.tv_nsec);
+    
+    float absDY = (rand() % 300) / 100.0;
+    
+    if (absDY < 1.00)
+        absDY += 1;
+
+    // Sometimes make it negative
+    int multVal = (rand() % 2 == 1) ? 1 : -1;
+
+    dy = multVal * absDY;
 }
 
 
