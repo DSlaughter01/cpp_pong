@@ -30,8 +30,12 @@ class Game : public GameVariables {
         // Resets object position and velocity, and updates the score. whoScored should be 'l' (left) or 'r' (right)
         void HandleScore(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char whoScored, GUI &gui);
 
-        // 
-        void ReactToWindowResize(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, GUI &gui);
+        // Changes variables, repositions objects, and updates GUI after a window resize event
+        void HandleWindowResize(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, GUI &gui);
+
+        void HandleGameOver(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char winner, GUI &gui);
+
+        void ResetToNewGame(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, GUI &gui);
 
         void GameLoop(GUI gui);
 };

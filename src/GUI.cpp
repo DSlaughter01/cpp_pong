@@ -14,7 +14,9 @@ int GameVariables::courtBottomY;
 int GameVariables::courtTopY;
 
 GUI::GUI() :
-    leftScoreSurf(nullptr), rightScoreSurf(nullptr), leftScoreTex(nullptr), rightScoreTex(nullptr)
+    leftScoreSurf(nullptr), rightScoreSurf(nullptr), leftScoreTex(nullptr), rightScoreTex(nullptr),
+    gameOverSurf(nullptr), gameOverTex(nullptr),
+    leftPlayer("Player 1"), rightPlayer("Player 2")
 {
 
     // Initialise SDL and TTF
@@ -78,10 +80,12 @@ GUI::~GUI() {
     SDL_FreeSurface(leftScoreSurf);
     SDL_FreeSurface(rightScoreSurf);
     SDL_FreeSurface(pressSpaceSurf);
+    SDL_FreeSurface(gameOverSurf);
 
     SDL_DestroyTexture(leftScoreTex);
     SDL_DestroyTexture(rightScoreTex);
     SDL_DestroyTexture(pressSpaceTex);
+    SDL_DestroyTexture(gameOverTex);
 }
 
 
@@ -108,8 +112,8 @@ void GUI::UpdateScoreTex(int leftScore, int rightScore) {
         SDL_DestroyTexture(rightScoreTex);
 
     // Take as input the score
-    leftScoreStr = std::to_string(leftScore);
-    rightScoreStr = std::to_string(rightScore);
+    leftScoreStr = leftPlayer + ": " + std::to_string(leftScore);
+    rightScoreStr = rightPlayer + ": " + std::to_string(rightScore);
 
     // Create surface and texture
     leftScoreSurf = TTF_RenderText_Solid(gameFont, leftScoreStr.c_str(), textColour);
@@ -153,13 +157,51 @@ void GUI::DrawCourt(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle) {
 void GUI::RenderScreen(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle) {
 
     SDL_RenderClear(renderer);
-    DrawCourt(ball, leftPaddle, rightPaddle);
-    if (!isInPlay)
-        SDL_RenderCopy(renderer, pressSpaceTex, NULL, &pressSpaceDest);
-    SDL_RenderCopy(renderer, leftScoreTex, NULL, &leftScoreDest);
-    SDL_RenderCopy(renderer, rightScoreTex, NULL, &rightScoreDest);
+
+    // Only render scores and end message if game is over
+    if (isGameOver) {
+        SDL_RenderCopy(renderer, gameOverTex, NULL, &gameOverDest);
+        SDL_RenderCopy(renderer, leftScoreTex, NULL, &leftScoreDest);
+        SDL_RenderCopy(renderer, rightScoreTex, NULL, &rightScoreDest);
+    }
+
+    // Else render court and scores
+    else {
+        DrawCourt(ball, leftPaddle, rightPaddle);
+        SDL_RenderCopy(renderer, leftScoreTex, NULL, &leftScoreDest);
+        SDL_RenderCopy(renderer, rightScoreTex, NULL, &rightScoreDest);
+
+        // Press space to start
+        if (!isInPlay)
+            SDL_RenderCopy(renderer, pressSpaceTex, NULL, &pressSpaceDest);
+    }
+
     SDL_RenderPresent(renderer);
 }
+
+void GUI::GenerateGameOverScreen(char winner) {
+
+    // Clear up previous game over screen
+    if (gameOverSurf)
+        SDL_FreeSurface(gameOverSurf);
+    if (gameOverTex)
+        SDL_DestroyTexture(gameOverTex);
+
+    // Allocate winner appropriately
+     if (winner == 'l') 
+        gameOverStr = "Game Over!\n" + leftPlayer + " wins!\nPress Enter to restart";
+    else
+        gameOverStr = "Game Over!\n" + rightPlayer + " wins!\nPress Enter to restart";
+
+    // Get ready for display
+    gameOverSurf = TTF_RenderText_Blended_Wrapped(gameFont, gameOverStr.c_str(), textColour, 0);
+    gameOverTex = SDL_CreateTextureFromSurface(renderer, gameOverSurf);
+    gameOverDest = {(windowWidth - gameOverSurf->w) / 2,
+                    (windowHeight - gameOverSurf->h) / 2,
+                    gameOverSurf->w,
+                    gameOverSurf->h};    
+}
+
 
 std::pair<int, int> GUI::ChangeWindowSize() {
 

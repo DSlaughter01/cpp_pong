@@ -1,6 +1,7 @@
 #include "Game.hpp"
 
 bool GameVariables::isInPlay = false;
+bool GameVariables::isGameOver = false;
 
 Game::Game() :
     isRunning(true), leftScore(0), rightScore(0), resize(false)
@@ -47,10 +48,8 @@ void Game::HandleCollisions(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle)
     // Check for collision with paddles
     if ((ball.rect.x + ball.rect.w >= rightPaddle.rect.x && ball.dx > 0 && SDL_HasIntersection(&ball.rect, &rightPaddle.rect)) 
     ||
-    (ball.rect.x <= leftPaddle.rect.x + leftPaddle.rect.w && ball.dx < 0 && SDL_HasIntersection(&ball.rect, &leftPaddle.rect))) {
+    (ball.rect.x <= leftPaddle.rect.x + leftPaddle.rect.w && ball.dx < 0 && SDL_HasIntersection(&ball.rect, &leftPaddle.rect)))
         ball.BounceOffPaddle();
-    }
-
 
     // Check for collision with court edges
     if ((ball.rect.y <= GameVariables::courtTopY && ball.dy < 0) || 
@@ -65,6 +64,24 @@ void Game::MoveGameObjects(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle) 
     rightPaddle.Move();
     ball.Move();
 }
+
+
+void Game::HandleWindowResize(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, GUI &gui) {
+
+    // Get the new window dimensions and set them in GameVariables
+    // Calculate the difference in the old and new sizes
+    std::pair<int, int> dimensionChanges = gui.ChangeWindowSize();
+
+    // Update GameVariable file to reflect changes
+    courtRightX += dimensionChanges.first;
+    courtBottomY += dimensionChanges.second;
+
+    // Reposition game objects accordingly
+    ball.ReactToWindowResize(dimensionChanges.first, dimensionChanges.second);
+    leftPaddle.ReactToWindowResize(dimensionChanges.first, dimensionChanges.second);
+    rightPaddle.ReactToWindowResize(dimensionChanges.first, dimensionChanges.second);
+}
+
 
 void Game::HandleScore(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char whoScored, GUI &gui) {
 
@@ -86,23 +103,36 @@ void Game::HandleScore(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char
     else if (whoScored == 'r')
         rightScore++;
     gui.UpdateScoreTex(leftScore, rightScore);
+
+    // Handle game over
+    if (leftScore == 10)
+        HandleGameOver(ball, leftPaddle, rightPaddle, 'l', gui);
+    else if (rightScore == 10)
+        HandleGameOver(ball, leftPaddle, rightPaddle, 'r', gui);
 }
 
 
-void Game::ReactToWindowResize(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, GUI &gui) {
+void Game::HandleGameOver(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, char winner, GUI &gui) {
 
-    // Get the new window dimensions and set them in GameVariables
-    // Calculate the difference in the old and new sizes
-    std::pair<int, int> dimensionChanges = gui.ChangeWindowSize();
+    isGameOver = true;
+    gui.GenerateGameOverScreen(winner);
+}
 
-    // Update GameVariable file to reflect changes
-    courtRightX += dimensionChanges.first;
-    courtBottomY += dimensionChanges.second;
 
-    // Reposition game objects accordingly
-    ball.ReactToWindowResize(dimensionChanges.first, dimensionChanges.second);
-    leftPaddle.ReactToWindowResize(dimensionChanges.first, dimensionChanges.second);
-    rightPaddle.ReactToWindowResize(dimensionChanges.first, dimensionChanges.second);
+void Game::ResetToNewGame(Ball &ball, Paddle &leftPaddle, Paddle &rightPaddle, GUI &gui) {
+
+    isGameOver = false;
+
+    // Reset game objects and set the ball to stationary
+    ball.Reset();
+    leftPaddle.Reset();
+    rightPaddle.Reset();
+    isInPlay = false;
+
+    // Reset scores
+    leftScore = 0;
+    rightScore = 0;
+    gui.UpdateScoreTex(leftScore, rightScore);
 }
 
 
@@ -146,7 +176,7 @@ void Game::GameLoop(GUI gui) {
         }
 
         if (resize) {
-            ReactToWindowResize(ball, leftPaddle, rightPaddle, gui);
+            HandleWindowResize(ball, leftPaddle, rightPaddle, gui);
             resize = false;
         }
 
@@ -163,6 +193,26 @@ void Game::GameLoop(GUI gui) {
 
         // Render the screen
         gui.RenderScreen(ball, leftPaddle, rightPaddle);
+
+        while (isGameOver) {
+
+            if (SDL_WaitEvent(&event)) {
+
+                // User quits the game
+                if (event.type == SDL_QUIT) {
+                    SDL_Quit();
+                    isRunning = false;
+                    break;
+                }
+                // Wait for event press enter to start a new game
+                if (event.type == SDL_KEYDOWN) {
+                    if (event.key.keysym.sym == SDLK_RETURN) {
+                        ResetToNewGame(ball, leftPaddle, rightPaddle, gui);
+                        break;
+                    }
+                }
+            }
+        }
 
         // Control frame rate
         frameEnd = SDL_GetTicks64();

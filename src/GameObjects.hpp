@@ -12,7 +12,6 @@ class Paddle : public GameVariables {
     
     private:
         char side;
-        int initialX, initialY;
         int dy;
         int x, y, w, h;
         const int paddleVel = 3;
