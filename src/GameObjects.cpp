@@ -76,8 +76,13 @@ void Ball::StartMovement() {
 
     // Sometimes make it negative
     int multVal = (rand() % 2 == 1) ? 1 : -1;
-
     dy = multVal * absDY;
+
+    // Sometimes make dx negative
+    timespec_get(&ts, TIME_UTC);
+    srand(ts.tv_nsec);
+    multVal = (rand() % 2 == 1) ? 1 : -1;
+    dx *= multVal;
 }
 
 
@@ -102,8 +107,10 @@ void Ball::ReverseDY() {
 
 
 void Ball::BounceOffPaddle() {
-    if (dx < maxBallVel)
-        dx *= -1.1;
+    if (abs(dx) < maxBallVel)
+        dx *= -1.2;
+    else
+        dx *= -1;
 }
 
 
